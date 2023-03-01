@@ -26,11 +26,9 @@ import csv
 from collections import deque
 import numpy as np
 import pandas as pd
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
 
 import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 import random
 import serial
 import serial.tools.list_ports
@@ -155,17 +153,65 @@ class PsPlot(QMainWindow):
         self.pw.setYRange(self.yMin, self.yMax, padding=self.yPadding)
 
         # add 3d plot
-        self.fig = Figure()
-        self.threeDplot = FigureCanvas(self.fig)
-        self.axes = self.fig.add_subplot(111, projection='3d')
-        self.axes.set_xlabel('1050nm')
-        self.axes.set_ylabel('1450nm')
-        self.axes.set_zlabel('1650nm')
+        self.threeDplot = gl.GLViewWidget()
+        self.threeDplot.setBackgroundColor((0.0, 0.0, 0.0, 1.0))
+        self.xzgrid = gl.GLGridItem()
+        self.yzgrid = gl.GLGridItem()
+        self.xygrid = gl.GLGridItem()
+
+        self.xygrid.setSpacing(x=1, y=1, z=1)
+        self.xzgrid.setSpacing(x=1, y=1, z=1)
+        self.yzgrid.setSpacing(x=1, y=1, z=1)
+
+        self.xygrid.setSize(x=10, y=10, z=0)
+        self.xzgrid.setSize(x=10, y=10, z=0)
+        self.yzgrid.setSize(x=10, y=10, z=0)
+
+        # rotate x and y grids to face the correct direction
+        self.xzgrid.rotate(90, 1, 0, 0)
+        self.yzgrid.rotate(90, 0, 1, 0)
+
+        self.xzgrid.translate(0, -5, 5)
+        self.yzgrid.translate(-5, 0, 5)
+
+        self.threeDplot.addItem(self.xzgrid)
+        self.threeDplot.addItem(self.xygrid)
+        self.threeDplot.addItem(self.yzgrid)
+
+        # add text to the axes
+        # x-axis
+        for i in range(-5, 5 + 1):
+            t = gl.GLTextItem()
+            t.setData(pos=(i, -5, 0), text=f"{i}")
+            self.threeDplot.addItem(t)
+        # y-axis
+        for i in range(-5, 5 + 1):
+            t = gl.GLTextItem()
+            t.setData(pos=(-5, i, 0), text=f"{i}")
+            self.threeDplot.addItem(t)
+        # z-axis
+        for i in range(0, 5 + 1):
+            t = gl.GLTextItem()
+            t.setData(pos=(-5, -5, i), text=f"{i}")
+            self.threeDplot.addItem(t)
+
+        t = gl.GLTextItem()
+        t.setData(pos=(6, -5, 0), text=f"1050nm")
+        self.threeDplot.addItem(t)
+
+        #  self.threeDplot = FigureCanvas(self.fig)
+        #  self.axes = self.fig.add_subplot(111, projection='3d')
+        #  self.axes.set_xlabel('1050nm')
+        #  self.axes.set_ylabel('1450nm')
+        #  self.axes.set_zlabel('1650nm')
 
         # graph horizonal layout
         self.horizontalGraphLayout = QHBoxLayout()
         self.horizontalGraphLayout.addWidget(self.pw)
         self.horizontalGraphLayout.addWidget(self.threeDplot)
+        self.pw.sizeHint = lambda: pg.QtCore.QSize(100, 100)
+        self.threeDplot.sizeHint = lambda: pg.QtCore.QSize(100, 100)
+        self.threeDplot.setSizePolicy(self.pw.sizePolicy())
 
         ## Table output
         self.tableHeader = ["sample name"] + [str(x) for x in self.wavelengths]
@@ -176,9 +222,9 @@ class PsPlot(QMainWindow):
 
         ## Buttons
         # center, auto-restoreAxis and clear
-        
+
         self.loadDatasetChbx = QCheckBox("Load dataset")
-        #self.loadDatasetChbx.clicked.connect(self.loadDatasetChbxClick)
+        # self.loadDatasetChbx.clicked.connect(self.loadDatasetChbxClick)
 
         self.axisRestoreBtn = QPushButton("Restore axis")
         self.axisRestoreBtn.clicked.connect(self.restoreAxisPlot)
@@ -300,7 +346,7 @@ class PsPlot(QMainWindow):
     def clearGraph(self) -> None:
         self.old_data.clear()
         self.pw.clear()
-        self.axes.cla()        
+        self.axes.cla()
 
     def keyPressEvent(self, e: QKeyEvent) -> None:
         if e.key() == Qt.Key.Key_Escape or e.key() == Qt.Key.Key_Q:
@@ -393,7 +439,7 @@ class PsPlot(QMainWindow):
             # parse data
             data = line.strip("> ").strip("\r\n").split("\t")
             data = [float(x) for x in data if x != ""]
-            #print(data)
+            # print(data)
         else:
             # dummy data with random noise
             data = data = [
@@ -473,14 +519,17 @@ class PsPlot(QMainWindow):
 
         # add the baseline of the last calibration
         if self.baseline is not None:
-            normalizedbasline = self.baseline/self.baseline
+            normalizedbasline = self.baseline / self.baseline
             pc = self.pw.plot(self.wavelengths, normalizedbasline, pen=(255, 0, 0))
 
         for dat in self.old_data:
             dat = np.array(dat)
-            normalizedolddat = dat/self.baseline
+            normalizedolddat = dat / self.baseline
             pc = self.pw.plot(
-                self.wavelengths, normalizedolddat, pen=(0, 100, 0), symbolBrush=(0, 255, 0)
+                self.wavelengths,
+                normalizedolddat,
+                pen=(0, 100, 0),
+                symbolBrush=(0, 255, 0),
             )
             pc.setSymbol("x")
 
@@ -493,7 +542,7 @@ class PsPlot(QMainWindow):
         pen = pg.mkPen(color=lineC, symbolBrush=markC, symbolPen="o", width=2)
         if data is not None:
             data = np.array(data)
-            normalizeddata = data/self.baseline
+            normalizeddata = data / self.baseline
             pc = self.pw.plot(self.wavelengths, normalizeddata, pen=pen)
             pc.setSymbol("o")
 
@@ -501,60 +550,82 @@ class PsPlot(QMainWindow):
             self.restoreAxisPlot()
         if self.axisAutoRangeChbx.isChecked():
             self.centerAxisPlot()
+
     def loadDataset(self):
-        #the goal here is to load a dataset to visualize in the 3D scatterplot
+        # the goal here is to load a dataset to visualize in the 3D scatterplot
         # import the dataframe
-        df_raw = pd.read_csv("https://raw.githubusercontent.com/Plastic-Scanner/data/main/data/20230117_DB2.1_second_dataset/measurement.csv")
+        df_raw = pd.read_csv(
+            "https://raw.githubusercontent.com/Plastic-Scanner/data/main/data/20230117_DB2.1_second_dataset/measurement.csv"
+        )
         # calculate the mean of the last 8 columns of the "spec" readings
         spec_df = df_raw.query("ID == 'spectralon'")
         spectralon_wavelengths = spec_df.iloc[:, -8:].mean()
-        #preprocess known dataset
+        # preprocess known dataset
         def apply_snv_transform(row):
             specific_wavelengths = row[-8:]
             return self.snv_transform(specific_wavelengths, spectralon_wavelengths)
 
         # Apply the function to each row of the dataframe
         df_raw.iloc[:, -8:] = df_raw.iloc[:, -8:].apply(apply_snv_transform, axis=1)
-        df_raw["PlasticNumber"] = df_raw["PlasticType"].map({"PET": 1,"HDPE": 2,"PVC": 3,"LDPE": 4,"PP": 5,"PS": 6,"other": 7})
-        #print(df_raw["PlasticNumber"])
+        df_raw["PlasticNumber"] = df_raw["PlasticType"].map(
+            {"PET": 1, "HDPE": 2, "PVC": 3, "LDPE": 4, "PP": 5, "PS": 6, "other": 7}
+        )
 
-        types_to_train = ["PET", "HDPE", "PP","PS"]
+        types_to_train = ["PET", "HDPE", "PP", "PS"]
         self.df_train = df_raw[df_raw.PlasticType.isin(types_to_train)]
-        
+
         self.datasetloaded = True
 
     def showDataset(self):
         if self.datasetloaded is None:
             self.loadDataset()
         for sample in self.df_train.index:
-            self.axes.scatter(self.df_train["nm1050"],self.df_train["nm1450"],self.df_train["nm1650"], c=self.df_train["PlasticNumber"])        
+            sp2 = gl.GLScatterPlotItem(
+                pos=(
+                    self.df_train["nm1050"],
+                    self.df_train["nm1450"],
+                    self.df_train["nm1650"],
+                ),
+                color=(1, 1, 1, 1),
+            )
+            self.threeDplot.addItem(sp2)
+            print("test")
+            print(f'aap {self.df_train["PlasticNumber"]=}')
+            #  self.axes.scatter(self.df_train["nm1050"],self.df_train["nm1450"],self.df_train["nm1650"], c=self.df_train["PlasticNumber"])
+
     def threeD(self, data: Optional[List[float]] = None) -> None:
         if self.loadDatasetChbx.isChecked():
             self.axes.cla()
             self.showDataset()
         data = np.array(data)
         self.baseline = np.array(self.baseline)
-        corrected = self.snv_transform(data,self.baseline)
-        #print(corrected)
-        self.axes.scatter(corrected[1],corrected[4],corrected[6], c= "red")
+        corrected = self.snv_transform(data, self.baseline)
+        # print(corrected)
+        sp2 = gl.GLScatterPlotItem(
+            pos=(corrected[1], corrected[4], corrected[6]),
+            color=(255, 0, 0, 1),
+        )
+        self.threeDplot.addItem(sp2)
+        self.threeDplot.setVisible(True)
 
-    def snv_transform(self,input_wavelengths, spectralon_wavelengths):
+    def snv_transform(self, input_wavelengths, spectralon_wavelengths):
         # Divide specific wavelengths by reference wavelengths
         input_wavelengths = input_wavelengths / spectralon_wavelengths
-        
+
         # Subtract the mean from each wavelength measurement
         input_wavelengths = input_wavelengths - input_wavelengths.mean()
-        
+
         # Divide the resulting values by the standard deviation
         output_wavelengths = input_wavelengths / input_wavelengths.std()
-        
+
         return output_wavelengths
+
 
 if __name__ == "__main__":
     print(f"App is running on QT version {QT_VERSION_STR}")
     # this should add some optimisations for high-DPI screens
     # https://pyqtgraph.readthedocs.io/en/latest/how_to_use.html#hidpi-displays
-    app = pg.mkQApp()
+    app = pg.mkQApp("PSPlot")
     window = PsPlot()
     window.show()
     app.exec()
