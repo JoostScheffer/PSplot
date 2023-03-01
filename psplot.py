@@ -27,7 +27,8 @@ from collections import deque
 import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+
 
 
 import pyqtgraph as pg
@@ -37,6 +38,12 @@ import serial.tools.list_ports
 import sys
 import time
 from typing import List, Optional
+
+class MplCanvas(FigureCanvasQTAgg):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111, projection='3d')
+        super(MplCanvas, self).__init__(fig)
 
 
 class ComboBox(QComboBox):
@@ -155,12 +162,11 @@ class PsPlot(QMainWindow):
         self.pw.setYRange(self.yMin, self.yMax, padding=self.yPadding)
 
         # add 3d plot
-        self.fig = Figure()
-        self.threeDplot = FigureCanvas(self.fig)
-        self.axes = self.fig.add_subplot(111, projection='3d')
-        self.axes.set_xlabel('1050nm')
-        self.axes.set_ylabel('1450nm')
-        self.axes.set_zlabel('1650nm')
+        self.threeDplot = MplCanvas(self,width=5,height=5,dpi=100)
+        self.threeDplot.axes.set_xlabel('1050nm')
+        self.threeDplot.axes.set_ylabel('1450nm')
+        self.threeDplot.axes.set_zlabel('1650nm')
+        self.threeD_plotref = None
 
         # graph horizonal layout
         self.horizontalGraphLayout = QHBoxLayout()
@@ -300,7 +306,7 @@ class PsPlot(QMainWindow):
     def clearGraph(self) -> None:
         self.old_data.clear()
         self.pw.clear()
-        self.axes.cla()        
+        self.threeDplot.axes.cla() 
 
     def keyPressEvent(self, e: QKeyEvent) -> None:
         if e.key() == Qt.Key.Key_Escape or e.key() == Qt.Key.Key_Q:
@@ -527,16 +533,27 @@ class PsPlot(QMainWindow):
         if self.datasetloaded is None:
             self.loadDataset()
         for sample in self.df_train.index:
-            self.axes.scatter(self.df_train["nm1050"],self.df_train["nm1450"],self.df_train["nm1650"], c=self.df_train["PlasticNumber"])        
+            self.threeDplot.axes.scatter(self.df_train["nm1050"],self.df_train["nm1450"],self.df_train["nm1650"], c=self.df_train["PlasticNumber"])        
+
     def threeD(self, data: Optional[List[float]] = None) -> None:
         if self.loadDatasetChbx.isChecked():
-            self.axes.cla()
+            self.threeDplot.axes.cla()
             self.showDataset()
+
         data = np.array(data)
         self.baseline = np.array(self.baseline)
         corrected = self.snv_transform(data,self.baseline)
         #print(corrected)
-        self.axes.scatter(corrected[1],corrected[4],corrected[6], c= "red")
+
+        #  if self.threeD_plotref is None:
+        plot_refs = self.threeDplot.axes.scatter(corrected[1],corrected[4],corrected[6], c= "red")
+            #  self.threeD_plotref = plot_refs[0]
+        #  else:
+        #      self._plot_ref.set_xdata(corrected[1])
+        #      self._plot_ref.set_ydata(corrected[4])
+        #      self._plot_ref.set_zdata(corrected[6])
+        self.threeDplot.draw()
+
 
     def snv_transform(self,input_wavelengths, spectralon_wavelengths):
         # Divide specific wavelengths by reference wavelengths
