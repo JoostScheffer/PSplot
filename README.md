@@ -2,7 +2,7 @@
 
 *A lightweight tool for obtaining and visualising the discrete near-infrared (NIR) data using the Plastic Scanner.*
 
-![PSplot screenshot](screenshot.png)
+![PSplot screenshot](screenshot-3d-opengl.png)
 
 
 
