@@ -10,8 +10,8 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.8' 
-      - run: pip install pipenv
+      - run: pip install pipenv black codespell ruff
       - run: pipenv install --dev
-      - run: black .
-      - run: codespell . --ignore-words-list=asend,gae --skip=./.*
-      - run: ruff .
+      - run: python -m black .
+      - run: python -m codespell . --ignore-words-list=asend,gae --skip=./.*
+      - run: python -m ruff .
