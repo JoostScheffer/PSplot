@@ -11,6 +11,6 @@ jobs:
         with:
           python-version: '3.8' 
       - run: pip install black codespell ruff
-      - run: python -m black .
-      - run: python -m codespell *.py
-      - run: python -m ruff check .
+      - run: black .
+      - run: codespell *.py
+      - run: ruff check .
