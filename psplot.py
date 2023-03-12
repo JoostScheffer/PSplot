@@ -78,12 +78,23 @@ class Table(QTableWidget):
                 QApplication.clipboard().setText(copy_text)
 
 
+
+
+
+
+
+
+
+
+
+
 class PsPlot(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowIcon(QIcon("logo3-01.png"))
 
         # HARDCODED SETTINGS
+        _WAVELENGHTS = None
         self.WAVELENGTHS = [
             940,
             1050,
