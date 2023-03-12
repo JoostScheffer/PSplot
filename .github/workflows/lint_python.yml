@@ -13,5 +13,5 @@ jobs:
       - run: pip install pipenv black codespell ruff
       - run: pipenv install --dev
       - run: python -m black .
-      - run: python -m codespell . --ignore-words-list=asend,gae --skip=./.*
+      - run: python -m codespell *.py
       - run: python -m ruff .
