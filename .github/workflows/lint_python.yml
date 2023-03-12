@@ -13,4 +13,4 @@ jobs:
       - run: pip install black codespell ruff
       - run: black .
       - run: codespell *.py
-      - run: ruff check .
+      - run: ruff check --fix .
