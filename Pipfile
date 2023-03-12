@@ -1,6 +1,7 @@
 [[source]]
-url = "https://github.com/Plastic-Scanner/PSplot"
-name = "PSplot"
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
 
 [packages]
 ipython = "*"
