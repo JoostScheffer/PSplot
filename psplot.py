@@ -37,6 +37,7 @@ import random
 import serial
 import serial.tools.list_ports
 import time
+from exporter import ExportDialog
 
 
 class ComboBox(QComboBox):
@@ -104,7 +105,8 @@ class PsPlot(QMainWindow):
             str(x) for x in self.WAVELENGTHS
         ]
         # the columns of the dataframe that are represented in the table
-        self.TABLE_DATAFRAME_SUBSET_HEADERS = [f"nm{x}" for x in self.WAVELENGTHS]
+        self.TABLE_DATAFRAME_SUBSET_HEADERS = [
+            f"nm{x}" for x in self.WAVELENGTHS]
 
         # the headers for the dataframe:
         # |  Reading                |   the how many'th measurement                   |
@@ -220,13 +222,14 @@ class PsPlot(QMainWindow):
         # holds labels for each row of the table, calibration rows are labeled differently
         self.tableRowLabels = []
 
-        ## setting up the UI elements
+        # setting up the UI elements
         # input output (selecting serial and saving)
         self._setupInOutUI()
         # taking a measurement
         self._setupMeasureUI()
         # 2d Plot
         self.scatter2d = ScatterPlot2D(self)
+        # self.exp_dia = ExportDialog(self.scatter2d._plotWidget.scene())
         # 3d plot
         self.scatter3d = ScatterPlot3D(self)
         # histogram
@@ -239,7 +242,7 @@ class PsPlot(QMainWindow):
         self.graphLayout.addLayout(self.scatter3d, 50)
         self.graphLayout.addLayout(self.histogram, 50)
 
-        ## Table to display output
+        # Table to display output
         self.table = Table()
         self.table.setColumnCount(len(self.TABLE_HEADER))
         self.table.setHorizontalHeaderLabels(self.TABLE_HEADER)
@@ -248,7 +251,7 @@ class PsPlot(QMainWindow):
         self.table.setColumnWidth(0, 200)
         self.table.setColumnWidth(1, 200)
 
-        ## add all layouts to mainLayout
+        # add all layouts to mainLayout
         # Container widget
         self.widget = QWidget(self)
         self.setCentralWidget(self.widget)
@@ -462,7 +465,8 @@ class PsPlot(QMainWindow):
         port = self.serialComboBox.currentText()
 
         try:
-            self.serial = serial.Serial(port, baudrate=self.BAUDRATE, timeout=1)
+            self.serial = serial.Serial(
+                port, baudrate=self.BAUDRATE, timeout=1)
             print(f"Opened serial port {self.serial.portstr}")
             self.serialNotifLbl.setText("Using real data")
             time.sleep(1)
@@ -645,7 +649,8 @@ class PsPlot(QMainWindow):
             self.tableRowLabels.append(f"c {self.total_calibration_counter}")
             self.table.setItem(nRows, 1, QTableWidgetItem("spectralon"))
         else:
-            self.tableRowLabels.append(str(nRows + 1 - self.total_calibration_counter))
+            self.tableRowLabels.append(
+                str(nRows + 1 - self.total_calibration_counter))
         self.table.setVerticalHeaderLabels(self.tableRowLabels)
 
         # add value for every column of new row
@@ -686,6 +691,9 @@ class PsPlot(QMainWindow):
 
             # after a calibration calibration the plot is cleared
             self.scatter2d.plot()
+            print(type(self.scatter2d.plotWidget.scene()))
+            for i in dir(self.scatter2d.plotWidget.scene()):
+                print(i)
 
     def clearCalibration(self) -> None:
         self.baseline = None
@@ -730,7 +738,8 @@ class PsPlot(QMainWindow):
             "CSV (*.csv);;All Files (*)",
         )
         if not filename:
-            QMessageBox.information(self, "loading dataset", "No file was selected")
+            QMessageBox.information(
+                self, "loading dataset", "No file was selected")
         else:
             self.loadDataset(filename)
 
@@ -779,7 +788,7 @@ class PsPlot(QMainWindow):
 
         self.df = new_df
 
-        ## clear plots
+        # clear plots
         # clear 3d plot
         self.scatter3d.clear()
         # build the datastructure needed for 3dplot
@@ -800,7 +809,7 @@ class PsPlot(QMainWindow):
         self.scatter2d.clear()
         self.histogram.clear()
 
-        ## reset variables
+        # reset variables
         # reset calibration counter
         self.sample_names = set(self.df["Name"])
         self.sample_colors = set(self.df["Color"])
@@ -812,7 +821,7 @@ class PsPlot(QMainWindow):
         self.total_calibration_counter = 0
         self.clearCalibration()
 
-        ## write dataframe to table
+        # write dataframe to table
         # clear table an variable
         self.table.clearContents()
         self.table.setRowCount(0)
@@ -853,7 +862,8 @@ class PsPlot(QMainWindow):
             "CSV(*.csv);;All Files(*)",
         )
         if not fname:
-            QMessageBox.information(self, "saving dataset", "No file was selected")
+            QMessageBox.information(
+                self, "saving dataset", "No file was selected")
         else:
             if "." not in fname:
                 fname = fname + ".csv"
