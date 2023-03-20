@@ -175,8 +175,7 @@ class ScatterPlot2D(QVBoxLayout):
         line_color = tuple(self._parent.palette().text().color().getRgb())
         mark_color = tuple(self._parent.palette().highlight().color().getRgb())
 
-        pen = pg.mkPen(color=line_color, symbolBrush=mark_color,
-                       symbolPen="o", width=2)
+        pen = pg.mkPen(color=line_color, symbolBrush=mark_color, symbolPen="o", width=2)
         if data is not None:
             if self._parent.baseline is not None:
                 data = normalize(data, self._parent.baseline)
@@ -225,8 +224,7 @@ class ScatterPlot3D(QVBoxLayout):
         #         }
         #     }
         # }
-        self.unique_series = {material: {}
-                              for material in self._parent.SCATTER3D_ALLOWED_MATERIALS}
+        self.unique_series = {material: {} for material in self._parent.SCATTER3D_ALLOWED_MATERIALS}
 
     def _init_plot_widget(self):
         self._graph = Q3DScatter()
@@ -235,20 +233,20 @@ class ScatterPlot3D(QVBoxLayout):
         self._graph.setHorizontalAspectRatio(1.0)
         self._graph.setAspectRatio(1.0)
         self._graph.setOrthoProjection(True)
-        # self._graph.scene().activeCamera().setCameraPreset(
-        #     Q3DCamera.CameraPresetIsometricLeft)
-        self._graph.scene().activeCamera().setCameraPreset(
-            Q3DCamera.CameraPresetIsometricRight)
+        self._graph.scene().activeCamera().setCameraPreset(Q3DCamera.CameraPresetIsometricLeft)
+
         self._graph.axisX().setTitle(self._parent.SCATTER3D_AXIS_VAR_X_DEFAULT)
         self._graph.axisX().setTitleVisible(True)
         self._graph.axisX().setLabelAutoRotation(90)
         self._graph.axisX().setTitleFixed(False)
         self._graph.axisX().setLabelFormat("")
+
         self._graph.axisY().setTitle(self._parent.SCATTER3D_AXIS_VAR_Y_DEFAULT)
         self._graph.axisY().setTitleVisible(True)
         self._graph.axisY().setLabelAutoRotation(90)
         self._graph.axisY().setTitleFixed(False)
         self._graph.axisY().setLabelFormat("")
+
         self._graph.axisZ().setTitle(self._parent.SCATTER3D_AXIS_VAR_Z_DEFAULT)
         self._graph.axisZ().setTitleVisible(True)
         self._graph.axisZ().setLabelAutoRotation(90)
@@ -262,8 +260,7 @@ class ScatterPlot3D(QVBoxLayout):
         currentTheme.setType(Q3DTheme.Theme(0))
         currentTheme.setBackgroundEnabled(False)
         currentTheme.setLabelBackgroundEnabled(False)
-        currentTheme.setLabelTextColor(
-            QColor(self._parent.palette().text().color()))
+        currentTheme.setLabelTextColor(QColor(self._parent.palette().text().color()))
         currentTheme.setAmbientLightStrength(1)
         currentTheme.setLightStrength(1)
         currentTheme.setHighlightLightStrength(1)
@@ -321,18 +318,15 @@ class ScatterPlot3D(QVBoxLayout):
         # buttons
         self._axXSelection = QComboBox()
         self._axXSelection.addItems(self._parent.SCATTER3D_AXIS_OPTIONS)
-        self._axXSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_X_DEFAULT)
+        self._axXSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_X_DEFAULT)
         self._axXSelection.currentTextChanged.connect(self._ax_x_changed)
         self._axYSelection = QComboBox()
         self._axYSelection.addItems(self._parent.SCATTER3D_AXIS_OPTIONS)
-        self._axYSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_Y_DEFAULT)
+        self._axYSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_Y_DEFAULT)
         self._axYSelection.currentTextChanged.connect(self._ax_y_changed)
         self._axZSelection = QComboBox()
         self._axZSelection.addItems(self._parent.SCATTER3D_AXIS_OPTIONS)
-        self._axZSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_Z_DEFAULT)
+        self._axZSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_Z_DEFAULT)
         self._axZSelection.currentTextChanged.connect(self._ax_z_changed)
 
         self._defaultAxesBtn = QPushButton("Default axes")
@@ -352,12 +346,9 @@ class ScatterPlot3D(QVBoxLayout):
         self._controlLayout.setSpacing(0)
 
     def _default_axes(self):
-        self._axXSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_X_DEFAULT)
-        self._axYSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_Y_DEFAULT)
-        self._axZSelection.setCurrentText(
-            self._parent.SCATTER3D_AXIS_VAR_Z_DEFAULT)
+        self._axXSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_X_DEFAULT)
+        self._axYSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_Y_DEFAULT)
+        self._axZSelection.setCurrentText(self._parent.SCATTER3D_AXIS_VAR_Z_DEFAULT)
 
     def _ax_x_changed(self, name):
         self._axis_var_x = name
@@ -377,8 +368,7 @@ class ScatterPlot3D(QVBoxLayout):
                 series = self.unique_series[material][id]["series"]
                 self._graph.removeSeries(series)
 
-        self.unique_series = {material: {}
-                              for material in self._parent.SCATTER3D_ALLOWED_MATERIALS}
+        self.unique_series = {material: {} for material in self._parent.SCATTER3D_ALLOWED_MATERIALS}
 
     def plot(self, axis_changed: bool = False):
         """axis_changed: true if the variable of
@@ -419,8 +409,7 @@ class ScatterPlot3D(QVBoxLayout):
 
                 if self._legend_buttons[material_name].isChecked():
                     if (
-                        len(self.unique_series[material]
-                            [id]["data"]) > len(proxy.array())
+                        len(self.unique_series[material][id]["data"]) > len(proxy.array())
                         or axis_changed
                     ):
                         # if none of the datapoints are None
@@ -454,20 +443,13 @@ class ScatterPlot3D(QVBoxLayout):
                                     print(
                                         "WARNING: trying to plot point on normalized axis while non normalized data is present!"
                                     )
-                                    print(
-                                        "\tSWITCHING TO DISPLAYING NON NORMALIZED DATA...")
-                                    self._axis_var_x = self._axis_var_x.rstrip(
-                                        "_norm") + "_snv"
-                                    self._axis_var_y = self._axis_var_y.rstrip(
-                                        "_norm") + "_snv"
-                                    self._axis_var_z = self._axis_var_z.rstrip(
-                                        "_norm") + "_snv"
-                                    self._axXSelection.setCurrentText(
-                                        self._axis_var_x)
-                                    self._axYSelection.setCurrentText(
-                                        self._axis_var_y)
-                                    self._axZSelection.setCurrentText(
-                                        self._axis_var_z)
+                                    print("\tSWITCHING TO DISPLAYING NON NORMALIZED DATA...")
+                                    self._axis_var_x = self._axis_var_x.rstrip("_norm") + "_snv"
+                                    self._axis_var_y = self._axis_var_y.rstrip("_norm") + "_snv"
+                                    self._axis_var_z = self._axis_var_z.rstrip("_norm") + "_snv"
+                                    self._axXSelection.setCurrentText(self._axis_var_x)
+                                    self._axYSelection.setCurrentText(self._axis_var_y)
+                                    self._axZSelection.setCurrentText(self._axis_var_z)
                             self.plot(axis_changed=True)
                             return
 
@@ -551,8 +533,7 @@ class Histogram(QVBoxLayout):
         self._sortBtnGroup.addButton(self._sortDefaultBtn)
         self._sortCertaintyBtn = QRadioButton("Sort score")
         self._sortBtnGroup.addButton(self._sortCertaintyBtn)
-        self._sortBtnGroup.buttonClicked.connect(
-            self._sorting_selection_changed)
+        self._sortBtnGroup.buttonClicked.connect(self._sorting_selection_changed)
 
         self._disableBtn = QCheckBox("disable")
         self._disableBtn.clicked.connect(self._disable)
@@ -590,8 +571,7 @@ class Histogram(QVBoxLayout):
         if self._disableBtn.isChecked():
             return
 
-        data = self._parent.df.loc[len(
-            self._parent.df) - 1, self._parent.PREDICTION_HEADERS]
+        data = self._parent.df.loc[len(self._parent.df) - 1, self._parent.PREDICTION_HEADERS]
         data = pd.DataFrame([data], columns=self._parent.PREDICTION_HEADERS)
         prediction = {
             plastic: self._parent.clf.predict_proba(data)[0][idx] * 100
